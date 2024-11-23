@@ -1,0 +1,36 @@
+
+# Installing CodeDeploy Agent
+sudo yum update -y
+sudo yum install -y ruby wget
+wget https://aws-codedeploy-eu-west-1.s3.eu-west-1.amazonaws.com/latest/install
+chmod +x ./install
+sudo ./install auto
+
+# Checking CodeDeploy Agent status
+sudo service codedeploy-agent status
+
+# Installing Nginx
+sudo amazon-linux-extras install -y nginx1
+
+# Checking Nginx status
+sudo service nginx status
+
+# Starting Nginx
+sudo service nginx start
+
+# Enabling Nginx to restart on system reboot
+sudo chkconfig nginx on
+
+# Creating folders for deployments
+sudo mkdir -p /var/www/my-angular-project
+
+# Changing Nginx configuration
+sudo nano /etc/nginx/nginx.conf
+
+# Only change root to /var/www/my-angular-project
+# Press `Ctrl + X` to exit, press `Y` to save and press `Enter` to approve.
+
+# Restart Nginx
+sudo service nginx restart
+
+

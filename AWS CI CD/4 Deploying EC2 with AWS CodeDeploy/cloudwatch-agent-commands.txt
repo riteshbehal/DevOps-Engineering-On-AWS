@@ -1,0 +1,30 @@
+# Download the unified CloudWatch agent
+wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+
+# Install the package
+sudo rpm -U ./amazon-cloudwatch-agent.rpm
+
+
+# Create configuration file using CloudWatch agent wizard
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard
+
+# Log file path
+/opt/codedeploy-agent/deployment-root/deployment-logs/codedeploy-agent-deployments.log
+
+# The configuration wizard creates the configuration file at /opt/aws/amazon-cloudwatch-agent/bin/config.json 
+
+# Edit the config file
+sudo nano /opt/aws/amazon-cloudwatch-agent/bin/config.json
+
+# "timestamp_format": "[%Y-%m-%d %H:%M:%S.%f]"
+# Ctrl+X to exit nano, press Y to save changes, press Enter to approve.
+
+
+# Start CloudWatch agent 
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
+
+# Stop CloudWatch agent
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a stop
+
+# Check CloudWatch agent status
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a status
