@@ -2,19 +2,18 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 12
+      nodejs: 20
     commands:
-      - npm install -g @angular/cli@9.0.6
+      - npm install -g @angular/cli@17
   pre_build:
     commands:
       - npm install
   build:
     commands:
-      - ng build --prod
+      - ng build -c production
     finally:
       - echo This is the finally block execution!
 artifacts:
+  base-directory: dist/my-angular-project
   files:
-    - 'dist/my-angular-project/**/*'
-    - appspec.yml
-    - 'deploy-scripts/**/*'
+    - '**/*'
