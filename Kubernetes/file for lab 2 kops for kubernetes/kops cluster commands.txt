@@ -1,0 +1,23 @@
+kops create cluster --name=cloudservicesdemo.in \
+--state=s3://demo-kops-bucket --zones=ap-southeast-1a,ap-southeast-1b \
+--node-count=2 --node-size=t3.small --master-size=t3.medium \
+--dns-zone=cloudservicesdemo.in \
+--node-volume-size=8 --master-volume-size=8
+
+------------------------------------------------------------------------------------------------------------------------------
+
+kops update cluster --name cloudservicesdemo.in --state=s3://demo-kops-bucket --yes
+
+------------------------------------------------------------------------------------------------------------------------------
+
+kops validate cluster --state=s3://demo-kops-bucket
+
+------------------------------------------------------------------------------------------------------------------------------
+
+export KOPS_STATE_STORE=s3://demo-kops-bucket
+kops export kubecfg --admin
+
+------------------------------------------------------------------------------------------------------------------------------
+
+
+kops delete cluster --name cloudservicesdemo.in --state=s3://demo-kops-bucket --yes

@@ -1,0 +1,13 @@
+vim tesla
+
+cat tesla
+
+git checkout tesla
+cat tesla
+
+git status
+git diff
+git add . 
+git diff --cached
+
+git restore --staged tesla

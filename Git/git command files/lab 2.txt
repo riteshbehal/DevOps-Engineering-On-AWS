@@ -1,0 +1,22 @@
+git branch -c mars1
+git branch -a
+
+git checkout mars1
+
+git rm
+git status
+git mv 
+git rm
+
+touch tesla{1..4}
+
+git add . 
+git commit -m "more changes"
+git push origin mars1
+
+git pull 
+git checkout mars1
+
+touch lambo range merc bmw
+
+git add . 

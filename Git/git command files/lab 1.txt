@@ -1,0 +1,45 @@
+mkdir gitrepository
+cd gitrepository
+
+mkdir sattelitework
+cd sattelitework
+
+git init
+ls -a
+
+mkdir insatla
+mkdir scross
+mkdir gsat9
+ls
+
+touch moon{1..10}.py
+ls
+touch insatla/test1
+touch scross/test2
+touch gsat9/test3
+
+git status
+git add . 
+git status
+git commit -m "new files commit"
+
+git config --global user.email "your@email"
+git config --global user.name "Your name"
+
+git branch -M main
+git push -u origin main
+
+vim moon1.py
+
+git status
+git add moon1.py
+git push origin mian
+
+git status
+git add moon2.py
+git commit -m "moon names"
+git push origin main
+
+git log
+git log --oneline
+git show fa52ffb
