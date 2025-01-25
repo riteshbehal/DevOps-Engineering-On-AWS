@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Ec2 Creation through Cloudformation
+
+Resources:
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0c4e27b0c52857dd6
+      InstanceType: t2.small
+      SubnetId: subnet-08577ea0a72094c4f
+      SecurityGroupIds:
+        - !Ref WebServerSecurityGroup
+      Tags:
+      - Key: Name
+        Value: web-server
+      - Key: Project
+        Value: Alexa-Project
+
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for web servers
+      VpcId: vpc-0c438557fe24ea59e
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: '0.0.0.0/0'

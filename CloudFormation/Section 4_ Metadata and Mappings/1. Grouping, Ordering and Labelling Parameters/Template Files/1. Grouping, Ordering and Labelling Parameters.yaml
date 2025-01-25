@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Sample database stack for the Metadata and Mappings section
+Metadata:
+Parameters:
+  DbClass:
+    Type: String 
+    Description: RDS instance class
+
+    # The db.t2 class was deprecated! Please keep the updated values for a smooth learning experience.
+    AllowedValues:
+      - db.t3.micro
+      - db.t4g.micro
+    ConstraintDescription: 'DbClass parameter can only have these values: db.t3.micro, db.t4g.micro'
+    Default: db.t4g.micro 
+  MasterUsername:
+    Type: String 
+    Description: Master username for the db instance 
+    MaxLength: 10
+    Default: dbadmin
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    NoEcho: true 
+  MasterUserPassword:
+    Type: String 
+    Description: Master user password for the db instance 
+    MinLength: 8
+    NoEcho: true 
+  MultiAZ:
+    Type: String
+    Description: Enable Multi-AZ?
+    AllowedValues:
+      - true 
+      - false
+    ConstraintDescription: MultiAZ parameter should be either true or false.
+    Default: false 
+  AllocatedStorage:
+    Type: Number 
+    Description: Database storage size in GB
+    MinValue: 8
+    MaxValue: 20
+    ConstraintDescription: AllocatedStorage parameter value should be between 8 and 20.
+    Default: 8
+  SecurityGroupPorts:
+    Type: List<Number>
+    Description: 'Port numbers as a list: <web-server-port>,<database-port>'
+    Default: '80,3306'
+  DbSubnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: 'Db subnet ids as a list: <subnet1>,<subnet2>,...'
+  VpcId:
+    Type: AWS::EC2::VPC::Id 
+    Description: A valid VPC id in your AWS account
+Resources:
+  Bastion:
+    Type: AWS::EC2::Instance 
+    Properties:
+      ImageId: ami-074254c177d57d640
+      InstanceType: t3.micro 
+      SubnetId: !Select [ 0, !Ref DbSubnets ]
+      Tags:
+        -
+          Key: Name 
+          Value: !Sub '${AWS::StackName}-Bastion'
+
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId 
+      GroupDescription: 'Web server instances security group'
+      SecurityGroupIngress:
+        - 
+          CidrIp: 0.0.0.0/0
+          FromPort: 
+            Fn::Select: [ 0, !Ref SecurityGroupPorts ]
+          ToPort: !Select [ 0, !Ref SecurityGroupPorts ]
+          IpProtocol: tcp
+
+  # Note: Please replace the value of VpcId property
+  # with the VPC id of your default VPC
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: 'Database instances security group'
+      SecurityGroupIngress:
+        - 
+          CidrIp: 0.0.0.0/0
+          FromPort: !Select [ 1, !Ref SecurityGroupPorts ]
+          ToPort: !Select [ 1, !Ref SecurityGroupPorts ]
+          IpProtocol: tcp
+
+  # Note: Please replace the value of SubnetIds property 
+  # with the subnet ids of the subnets in your default VPC!
+  DbSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: Subnets to launch db instances into
+      SubnetIds: !Ref DbSubnets
+
+  DatabaseInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      BackupRetentionPeriod: 0
+      DBInstanceClass: !Ref DbClass
+      Engine: mysql
+      MultiAZ: !Ref MultiAZ
+      PubliclyAccessible: true
+      AllocatedStorage: !Ref AllocatedStorage 
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VPCSecurityGroups: 
+        - !Ref DbSecurityGroup
+      

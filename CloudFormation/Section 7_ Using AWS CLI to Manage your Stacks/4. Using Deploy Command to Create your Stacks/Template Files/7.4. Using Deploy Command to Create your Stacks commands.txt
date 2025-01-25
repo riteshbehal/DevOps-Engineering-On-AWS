@@ -1,0 +1,46 @@
+Using Deploy Command to Create your Stacks:-
+
+
+# To ensure you are in the folder containing your CloudFormation template:-
+aws s3 mb s3://stack-general
+
+
+#to check for all the buckets:-
+aws s3 ls
+
+
+#Use aws cloudformation deploy to create a stack:-
+aws cloudformation deploy --stack-name Stack2 --template-file "C:\internship\Section 7\7.4. USING DEPLOY COMMAND TO CREATE YOUR STACKS\database-stack-template.yaml --s3-bucket stack-general --parameter-overrides VpcId=vpc-0b0c8badfef002434 DbSubnets-subnet-061947966364084af, subnet-08c772de46d853876, subnet-0a1bbb2feaa84bb95
+
+
+
+#Confirm the stack creation is complete with aws cloudformation describe-stacks using the stack name:-
+aws cloudformation describe-stacks --stack-name Stack2
+
+
+
+
+Using Deploy Commands to Update your Stacks:-
+
+
+#Use aws cloudformation deploy to update the stack with the --stack-name option:-
+aws cloudformation deploy --stack-name Stack2 --template-file "C:\inter nship\Section 7\7.4. USING DEPLOY COMMAND TO CREATE YOUR STACKS\database-stack-template.yam 1" --s3-bucket stack-general --parameter-overrides AllocatedStorage=10
+
+
+#Use aws cloudformation delete-stack to clean up the stack and its resources:-
+aws cloudformation delete-stack --stack-name Stack2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

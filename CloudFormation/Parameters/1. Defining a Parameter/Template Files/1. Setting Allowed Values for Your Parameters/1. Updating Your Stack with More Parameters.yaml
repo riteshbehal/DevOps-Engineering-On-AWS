@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: A sample database stack for the AWS CloudFormation Step by Step course series
+Parameters:
+  DbClass:
+    Type: String
+    Description: The RDS DB instance class
+  MasterUsername:
+    Type: String
+    Description: The master username for the DB instance
+  MasterUserPassword:
+    Type: String
+    Description: The master user password for the DB instance
+  MultiAZ:
+    Type: String
+    Description: Enable Multi-AZ on the DB instance?
+  AllocatedStorage:
+    Type: Number
+    Description: The DB instance storage size in GiB
+
+Resources:
+  # Please replace the VpcId property's value with the ID of your default VPC!
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: vpc-0b0c8badfef0024a4
+      GroupDescription: 'Database instances security group'
+      SecurityGroupIngress:
+        - 
+          CidrIp: 0.0.0.0/0
+          FromPort: 3306
+          ToPort: 3306
+          IpProtocol: tcp
+
+  # Please replace the SubnetIds property's value with a list of your default subnet IDs!
+  DbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: The subnets to launch DB instances
+      SubnetIds: [ subnet-0619479663b4084af, subnet-08c772de46d053876, subnet-0a1bbb2feaa84bb95, subnet-05093a04c0c110c89 ]
+
+  DatabaseInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      AllocatedStorage: !Ref AllocatedStorage
+      BackupRetentionPeriod: 0
+      DBInstanceClass: !Ref DbClass
+      Engine: mysql
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      MultiAZ: !Ref MultiAZ
+      PubliclyAccessible: true
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VPCSecurityGroups:
+        - !Ref DbSecurityGroup

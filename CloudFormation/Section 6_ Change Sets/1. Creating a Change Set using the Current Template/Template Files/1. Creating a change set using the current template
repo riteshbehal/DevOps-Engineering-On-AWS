@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Sample database stack template for Change Sets section 
+  creating an Amazon RDS instance.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label:
+          default: Database Instance Settings 
+        Parameters:
+          - AllocatedStorage
+          - DbClass 
+      - 
+        Label:
+          default: Network Settings 
+        Parameters:
+          - VpcId
+          - DbSubnets 
+
+Parameters:  
+  DbSubnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: 'Subnets that the database instances will be launched into'
+  VpcId:
+    Type: AWS::EC2::VPC::Id 
+    Description: A valid VPC id in your AWS account
+  AllocatedStorage:
+    Type: Number
+    Description: Database storage in GiB
+    MinValue: 8 
+    MaxValue: 20
+    Default: 8
+  DbClass:
+    Type: String 
+    AllowedValues: [ db.t3.micro, db.t4g.micro ]
+    Description: Amazon RDS instance class
+    Default: db.t4g.micro
+
+Resources:
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: 'Database instances security group'
+      SecurityGroupIngress:
+        - 
+          CidrIp: 0.0.0.0/0
+          FromPort: 3306
+          ToPort: 3306
+          IpProtocol: tcp
+
+  DbSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: Subnets to launch db instances into
+      SubnetIds: !Ref DbSubnets
+
+  MasterDbInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      BackupRetentionPeriod: 0
+      DBInstanceClass: !Ref DbClass
+      Engine: mysql
+      MultiAZ: false
+      PubliclyAccessible: true
+      AllocatedStorage: !Ref AllocatedStorage 
+      MasterUsername: dbadmin
+      MasterUserPassword: dbpassword
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VPCSecurityGroups: 
+        - !Ref DbSecurityGroup
+
+
+      

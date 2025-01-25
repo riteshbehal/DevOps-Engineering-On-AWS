@@ -1,0 +1,11 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Sample template for first stack - AWS CloudFormation Step by Step: Beginner to Intermediate'
+
+Resources:
+  SampleQueue:
+    Type: AWS::SQS::Queue
+
+  SampleTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: My Sample Topic

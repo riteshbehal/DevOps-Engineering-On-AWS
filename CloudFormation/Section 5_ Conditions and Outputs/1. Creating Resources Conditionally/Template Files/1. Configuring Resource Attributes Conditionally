@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  A database stack template that creates a master RDS instance and a read replica. 
+  It also provisions a security group and attaches to the db instances.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label:
+          default: Network Settings 
+        Parameters:
+          - VpcId
+          - DbSubnets 
+
+Parameters:  
+  DbSubnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: 'Db subnet ids as a list: <subnet1>,<subnet2>,...'
+  VpcId:
+    Type: AWS::EC2::VPC::Id 
+    Description: A valid VPC id in your AWS account
+  Environment:
+    Type: String 
+    AllowedValues: [ test, production ]
+
+Conditions:
+  EnvironmentIsProduction: !Equals [ !Ref Environment, production ]
+
+Resources:
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: 'Database instances security group'
+      SecurityGroupIngress:
+        - 
+          CidrIp: 0.0.0.0/0
+          FromPort: 3306
+          ToPort: 3306
+          IpProtocol: tcp
+
+  DbSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: Subnets to launch db instances into
+      SubnetIds: !Ref DbSubnets
+
+  MasterDbInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: !If [ EnvironmentIsProduction, db.t4g.small, db.t4g.micro ]
+      Engine: mysql
+      MultiAZ: false
+      PubliclyAccessible: true
+      AllocatedStorage: 8 
+      MasterUsername: dbadmin
+      MasterUserPassword: dbpassword
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VPCSecurityGroups: 
+        - !Ref DbSecurityGroup
+
+  ReadReplica:
+    Type: AWS::RDS::DBInstance
+    Condition: EnvironmentIsProduction
+    Properties:
+      SourceDBInstanceIdentifier: !Ref MasterDbInstance
+      DBInstanceClass: db.t4g.micro 
+      Engine: mysql
+      PubliclyAccessible: true
+      VPCSecurityGroups: 
+        - !Ref DbSecurityGroup
+
+      

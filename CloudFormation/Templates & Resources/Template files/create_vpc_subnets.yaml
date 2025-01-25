@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Test solution template
+Resources:
+  SimplilearnVPC1:
+    Type: AWS::EC2::VPC
+    Description: Test VPC definition
+    Properties:
+      CidrBlock: 192.168.0.0/24
+      Tags:
+        -
+          Key: Name
+          Value: TestVpc
+  TestSubnet:
+    Type: AWS::EC2::Subnet 
+    Properties:
+      CidrBlock: 192.168.0.0/26
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref SimplilearnVPC1
+  TestRouteTable:
+    Type: AWS::EC2::RouteTable 
+    Properties:
+      VpcId: !Ref SimplilearnVPC1
+  TestInternetGateway:
+    Type: AWS::EC2::InternetGateway
+  TestGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref SimplilearnVPC1
+      InternetGatewayId: !Ref TestInternetGateway
+  InternetRoute:
+    Type: AWS::EC2::Route 
+    DependsOn:
+      - TestGatewayAttachment
+    Properties:
+      RouteTableId: !Ref TestRouteTable
+      GatewayId: !Ref TestInternetGateway
+      DestinationCidrBlock: 0.0.0.0/0
+  TestSubnetRouteTableAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TestRouteTable
+      SubnetId: !Ref TestSubnet
+  TestInstance:
+    Type: AWS::EC2::Instance 
+    DependsOn:
+      - InternetRoute
+      - TestSubnetRouteTableAssoc
+    Properties:
+      InstanceType: t2.micro
+      SubnetId: !Ref TestSubnet 
+      ImageId: ami-0c4e27b0c52857dd6
+      SecurityGroupIds:
+        - !Ref TestSecurityGroup
+  TestSecurityGroup:
+    Type: AWS::EC2::SecurityGroup 
+    Properties:
+      GroupDescription: Test security group 
+      VpcId: !Ref SimplilearnVPC1
+      SecurityGroupIngress:
+        -
+          CidrIp: 0.0.0.0/0 
+          IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1

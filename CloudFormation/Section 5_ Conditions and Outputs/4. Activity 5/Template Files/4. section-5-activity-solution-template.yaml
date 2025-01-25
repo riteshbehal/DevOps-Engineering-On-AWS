@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Section 5 Activity template. 
+  It launches a web server EC2 instance with separate security groups for HTTP and SSH access. 
+  It creates an EBS volume and attaches it to the EC2 instance.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label:
+          default: VPC Settings
+        Parameters:
+          - VpcId
+          - WebServerSubnet
+      - 
+        Label:
+          default: Web Server Settings
+        Parameters:
+          - KeyPairName
+      - 
+        Label:
+          default: EBS Volume Settings
+        Parameters:
+          - EbsVolumeSize
+
+    ParameterLabels:
+      VpcId:
+        default: Select a VPC
+      WebServerSubnet:
+        default: Select a subnet for the web server
+      KeyPairName:
+        default: Select an EC2 key pair 
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id 
+  WebServerSubnet:
+    Type: AWS::EC2::Subnet::Id
+    Description: It should be in the same VPC.
+  EbsVolumeSize:
+    Type: Number
+    Description: Size in GiB
+    Default: 10 
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+  NewVolumeOption:
+    Type: String 
+    AllowedValues: [ true, false ]
+    Description: Whether to create and attach an EBS volume
+  AllowSshAccess:
+    Type: String
+    AllowedValues: [ true, false ]
+    Description: Whether to allow SSH access to the web server
+
+Mappings:
+  RegionImages:
+    eu-west-1:
+      ImageId: ami-04bd4a6a67aa8e86e
+    us-east-1:
+      ImageId: ami-03945116ac87ab953
+
+Conditions:
+  NewVolumeOptionSelected: !Equals [ !Ref NewVolumeOption, true ]
+  SshAccessAllowed: !Equals [ !Ref AllowSshAccess, true ]
+
+Resources:
+  
+  WebServerInstance:
+    Type: AWS::EC2::Instance 
+    Properties:
+      InstanceType: t2.micro
+      SubnetId: !Ref WebServerSubnet 
+      ImageId: !FindInMap [ RegionImages, !Ref 'AWS::Region', ImageId ]
+      KeyName: !If [ SshAccessAllowed, !Ref KeyPairName, !Ref 'AWS::NoValue' ]
+      SecurityGroupIds:
+        - !Ref HttpSecurityGroup
+        - !If [ SshAccessAllowed, !Ref SshSecurityGroup, !Ref 'AWS::NoValue' ]
+      Tags:
+        -
+          Key: Name
+          Value: !Sub '${AWS::StackName}-WebServer'
+
+
+  # Security groups allowing access to different ports
+  HttpSecurityGroup:
+    Type: AWS::EC2::SecurityGroup 
+    Properties:
+      GroupDescription: Security group for HTTP access
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        -
+          CidrIp: 0.0.0.0/0 
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+
+  SshSecurityGroup:
+    Type: AWS::EC2::SecurityGroup 
+    Condition: SshAccessAllowed
+    Properties:
+      GroupDescription: Security group to allow SSH access 
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        -
+          CidrIp: 0.0.0.0/0 
+          IpProtocol: tcp
+          FromPort: 22 
+          ToPort: 22
+
+
+  # EBS Volume that should be created in the same AZ 
+  # with the WebServerInstance
+  EbsVolume:
+    Type: AWS::EC2::Volume
+    Condition: NewVolumeOptionSelected
+    Properties:
+      AvailabilityZone: !GetAtt [ WebServerInstance, AvailabilityZone ]
+      VolumeType: gp2
+      Size: !Ref EbsVolumeSize
+      Tags:
+        - 
+          Key: Name
+          Value: !Sub '${AWS::StackName}-Volume'
+
+  VolumeAttachment:
+    Type: AWS::EC2::VolumeAttachment
+    Condition: NewVolumeOptionSelected
+    Properties:
+      Device: /dev/sdf
+      InstanceId: !Ref WebServerInstance
+      VolumeId: !Ref EbsVolume
+      
+Outputs:
+  WebServerInstanceId:
+    Value: !Ref WebServerInstance
+  WebServerPublicDns:
+    Value: !GetAtt [ WebServerInstance, PublicDnsName ]
+    Description: The public DNS name of the web server
+  EbsVolumeId:
+    Value: !Ref EbsVolume
+    Condition: NewVolumeOptionSelected

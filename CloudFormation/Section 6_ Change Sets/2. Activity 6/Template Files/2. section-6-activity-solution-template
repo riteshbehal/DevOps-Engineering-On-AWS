@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Section 6 Activity template. 
+  This template creates an EC2 instance and an EBS volume attached to it.
+
+Parameters:
+  WebServerSubnet:
+    Type: AWS::EC2::Subnet::Id
+    Description: The subnet of the web server instance.
+
+Mappings:
+  RegionImages:
+    eu-west-1:
+      ImageId: ami-04bd4a6a67aa8e86e
+    us-east-1:
+      ImageId: ami-03945116ac87ab953
+
+Resources:
+  
+  WebServerInstance:
+    Type: AWS::EC2::Instance 
+    Properties:
+      InstanceType: t2.micro
+      SubnetId: !Ref WebServerSubnet 
+      ImageId: !FindInMap [ RegionImages, !Ref 'AWS::Region', ImageId ]
+      Tags:
+        -
+          Key: Name
+          Value: !Sub '${AWS::StackName}-WebServer'
+
+  S3Bucket:
+    Type: AWS::S3::Bucket 
+      

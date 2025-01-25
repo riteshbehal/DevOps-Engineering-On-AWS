@@ -1,0 +1,13 @@
+
+Installing and Configuring AWS CLI:-
+
+
+#Verify AWS CLI installation:-
+aws --version
+
+
+#Configure AWS CLI:-
+aws configure
+
+#Test the configuration to list available S3 buckets:-
+aws s3 ls

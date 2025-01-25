@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Section 1 activity template.
+Resources:
+  SampleTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: section1-activity-table
+      AttributeDefinitions:
+        - 
+          AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - 
+          AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  SampleRDSInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      Engine: mariadb
+      DBInstanceClass: db.t4g.micro
+      DBInstanceIdentifier: section1-activity-db
+      MultiAZ: false
+      MasterUsername: dbadmin
+      MasterUserPassword: mystrongpassword
+      AllocatedStorage: 8
+      StorageType: gp2
+      BackupRetentionPeriod: 0
+    
+
+      

@@ -1,0 +1,62 @@
+Creating Stacks With AWS CLI:-
+
+
+#check for the available buckets:-
+aws s3 ls
+
+
+#create new s3 bucket:-
+aws s3 mb s3://generals-buckets-stacks
+
+
+#Upload the template file to the S3 bucket:-
+aws s3 cp "file://path" s3://generals-buckets-stacks
+
+
+
+#create stack command:-
+aws cloudformation create-stack --stack-name STACKS4 --template-url http://s3-eu-west-1.amazonaws.com/generals-buckets-stacks/database-stack-template. yaml --parameters ParameterKey=VpcId, ParameterValue=vpc-0b0c8badfef0024a4 Parameterke y=DbSubnets, ParameterValue="subnet-0619479663b4084af\, subnet-08c772de46d053876\, subnet-0a1bbb2feaa84bb95"
+
+
+#Check the stack's creation status using the aws cloudformation describe-stacks
+command with the stack name or ID:-
+aws cloudformation describe-stacks --stack-name arn:aws:cloudform ation:eu-west-1:878893308172:stack/STACKS4/1eea6020-b6bf-11ef-9485-02230301ef13
+
+aws cloudformation describe-stacks --stack-name STACKs4
+
+
+
+
+
+Updating Stacks with AWS CLI:-
+
+
+#command to list all resources in the stack by providing the stack name;-
+aws cloudformation describe-stacks --stack-name STACKs4
+
+
+#Filter resources to a specific one using the --logical-resource-id option to describe
+only that resource:-
+aws cloudformation describe-stacks --stack-name STACKs4 --logical-resource-id Dbinstance
+
+
+
+#describe its details using aws rds describe-db-instances with the --db-instance-identifier option:-
+aws rds describe-db-instances --db-instance-identifier stacks4-dbinstance-bkdpxcxfqde5
+
+
+#Update the stack using aws cloudformation update-stack:-
+aws s3 cp "G:\internship Section 7\7.2. updating stacks with AWS CLI\database-stack-template.yaml s3://generals-buckets-stacks upload: ..\..\internship\Section 7\7.2. updating stacks with AWS CLI\database-stack-t emplate.yaml to s3://generals-buckets-stacks/database-stack-template.yaml PS C:\Users\Ishika> aws cloudformation update-stack --stack-name STACKS4 --template-u rl http://s3-eu-west-1.amazonaws.com/generals-buckets-stacks/database-stack-template. yaml --parameters ParameterKey=AllocatedStorage, ParameterValue=10 ParameterKey=VpcId, ParameterValue=vpc-0b0c8badfef0024a4 ParameterKey=DbSubnets, ParameterValue="subnet-06 1947966364084af\, subnet-08c772de46d053876\, subnet-0a1bbb2feaa84bb95"
+
+
+#Check the aws cloudformation describe-stacks to verify the stack status:-
+aws cloudformation describe-stacks --stack-name STACKs4
+
+
+#Use aws cloudformation wait stack-update-complete to automate polling until the update completes:-
+aws cloudformation wait stack-update-complete --stack-name STACKs4
+
+
+
+
+

@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: A sample database stack for the AWS CloudFormation Step by Step course series
+Parameters:
+  DbClass:
+    Type: String
+    Description: The RDS DB instance class
+    AllowedValues:
+      - db.t4g.micro
+      - db.t3.micro
+  MasterUsername:
+    Type: String
+    Description: The master username for the DB instance
+    MaxLength: 10
+  MasterUserPassword:
+    Type: String
+    Description: The master user password for the DB instance
+    MinLength: 8
+  MultiAZ:
+    Type: String
+    Description: Enable Multi-AZ on the DB instance?
+    AllowedValues: [ true, false ]
+  AllocatedStorage:
+    Type: Number
+    Description: The DB instance storage size in GiB
+    MinValue: 20
+    MaxValue: 30
+    ConstraintDescription: AllocatedStorage cannot be less than 20 or greater than 30.
+
+Resources:
+  # Please replace the VpcId property's value with the ID of your default VPC!
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: vpc-0de3056166f2cf89b
+      GroupDescription: 'Database instances security group'
+      SecurityGroupIngress:
+        - 
+          CidrIp: 0.0.0.0/0
+          FromPort: 3306
+          ToPort: 3306
+          IpProtocol: tcp
+
+  # Please replace the SubnetIds property's value with a list of your default subnet IDs!
+  DbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: The subnets to launch DB instances
+      SubnetIds: [ subnet-0f43cf1f48d397747, subnet-0a0f330f8f9779d5f, subnet-0304ca810acdde641 ]
+
+  DatabaseInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      AllocatedStorage: !Ref AllocatedStorage
+      BackupRetentionPeriod: 0
+      DBInstanceClass: !Ref DbClass
+      Engine: mysql
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      MultiAZ: !Ref MultiAZ
+      PubliclyAccessible: true
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VPCSecurityGroups:
+        - !Ref DbSecurityGroup

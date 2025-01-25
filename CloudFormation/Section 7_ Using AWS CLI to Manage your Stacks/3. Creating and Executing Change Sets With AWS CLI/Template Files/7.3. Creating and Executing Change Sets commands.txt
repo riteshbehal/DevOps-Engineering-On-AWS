@@ -1,0 +1,110 @@
+Creating and Executing Change Sets With AWS CLI:-
+
+
+#Use aws cloudformation create-change-set to create a change set:-
+aws cloudformation create-change-set help
+
+
+#Specify --change-set-name and --change-set-type to CREATE for stack creation:-
+aws cloudformation create-change-set--change-set-name create-stack-change-set --change-set-type CREATE --s tack-name STACK1 --template-body "file://C:/internship/Section 7/Creating and Executing Change Sets with AWS CLI/database-stack -template.yaml" --parameters ParameterKey=VpcId, ParameterValue=vpc-0b0c8badfef0024a4 ParameterKey-DbSubnets, ParameterValue-subn et-061947966364084af\\, subnet-08c772de46d053876\\, subnet-0a1bbb2feaa84bb95
+
+
+#Use aws cloudformation command to check stack status:-
+aws cloudformation describe-stacks --stack-name STACK1
+
+
+#Use aws cloudformation command to view resources:-
+aws cloudformation describe-stack-resources --stack-name STACK1
+
+
+#Use aws cloudformation command with the change set name to see proposed changes:-
+aws cloudformation describe-change-set --change-set-name create-stack-change-set --stack-name STACK1
+
+
+#Execute the change set:-
+aws cloudformation execute-change-set --change-set-name create-stack-change-set --stack-name STACK1
+
+
+#Use aws cloudformation describe-stacks to check final stack status:-
+aws cloudformation describe-change-set--change-set-name arn:aws:cl oudformation:eu-west-1:878893308172:changeSet/create-stack-change-set/d9d0d052-0d5c-424b-bdbf-50faddaf687e
+
+
+
+Deleting Change Sets With AWS CLI:-
+
+
+#To check if you're in the same folder as your template:-
+ls
+
+
+#Create a change set using the aws cloudformation create-change-set command:-
+aws cloudformation create-change-set \
+> --change-set-name increase-storage-change-set--stack-name STACK1 \
+> --template-body "file://C:\internship\Section 7\7.3Deleting Change Sets with AWS CLI\database-stack-template.yaml" \
+> --parameters ParameterKey=VpcId, ParameterValue=vpc-0b0c8badf
+> ParameterKey=DbSubnets, ParameterValue=subnet-061947966364084af\\, subnet-08c772de46d053876\\, subnet-0a1bbb2feaa84bb95\
+>ParameterKey=AllocatedStorage, ParameterValue=10
+
+
+
+#Check the details of the change set:-
+aws cloudformation describe-change-set \
+> --change-set-name increase-storage-change-set --stack-name STACK1
+
+
+#List all existing change sets:-
+aws cloudformation list-change-sets --stack-name STACK1
+
+
+#Use the aws cloudformation delete-change-set command:-
+aws cloudformation delete-change-set --change-set-name arn:aws:cloudformation:eu-west-1:878893308172:changeSet/create-stack-ch ange-set/d9d0d052-0d5c-424b-bdbf-50faddaf687e
+
+#Verify that the change set has been deleted by running aws cloudformation describe-change-set:-
+aws cloudformation describe-change-set --change-set-name arn:aws:c loudformation:eu-west-1:878893308172:changeSet/create-stack-change-set/d9d0d052-0d5c-4 24b-bdbf-50faddaf687e
+
+
+
+#To clean up, delete the stack using aws cloudformation delete-stack:-
+aws cloudformation delete-stack --stack-name STACK1
+
+
+
+# Verify the stack is being deleted by checking its status with aws cloudformation describe-stacks:-
+aws cloudformation describe-stacks --stack-name STACK1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
