@@ -36,7 +36,7 @@ Resources:
   DbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: vpc-0de3056166f2cf89b
+      VpcId: vpc-0c438557fe24ea59e
       GroupDescription: 'Database instances security group'
       SecurityGroupIngress:
         - 
@@ -50,7 +50,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: The subnets to launch DB instances
-      SubnetIds: [ subnet-0f43cf1f48d397747, subnet-0a0f330f8f9779d5f, subnet-0304ca810acdde641 ]
+      SubnetIds: [ subnet-08577ea0a72094c4f, subnet-09fd85595a91bb65f, subnet-0dfbc8f46ffe66989 ]
 
   DatabaseInstance:
     Type: AWS::RDS::DBInstance
