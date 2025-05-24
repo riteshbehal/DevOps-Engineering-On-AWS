@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Sample database stack for the Parameters section
+Parameters:
+  DbClass:
+    Type: String 
+    Description: RDS instance class 
+    AllowedValues:
+      - db.t2.micro
+      - db.t2.small
+    ConstraintDescription: 'DbClass parameter can only have these values: db.t2.micro, db.t2.small'
+    Default: db.t2.micro 
+  MasterUsername:
+    Type: String 
+    Description: Master username for the db instance 
+    MaxLength: 10
+    Default: dbadmin
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    NoEcho: true 
+  MasterUserPassword:
+    Type: String 
+    Description: Master user password for the db instance 
+    MinLength: 8
+    NoEcho: true 
+  MultiAZ:
+    Type: String
+    Description: Enable Multi-AZ?
+    AllowedValues:
+      - true 
+      - false
+    ConstraintDescription: MultiAZ parameter should be either true or false.
+    Default: false 
+  AllocatedStorage:
+    Type: Number 
+    Description: Database storage size in GB
+    MinValue: 8
+    MaxValue: 20
+    ConstraintDescription: AllocatedStorage parameter value should be between 8 and 20.
+    Default: 8
+  SecurityGroupPorts:
+    Type: List<Number>
+    Description: 'Port numbers as a list: <web-server-port>,<database-port>'
+    Default: '80,3306'
+  DbSubnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: 'Db subnet ids as a list: <subnet1>,<subnet2>,...'
+  VpcId:
+    Type: AWS::EC2::VPC::Id 
+    Description: A valid VPC id in your AWS account
+Resources:
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId 
+      GroupDescription: 'Web server instances security group'
+      SecurityGroupIngress:
+        - 
+          CidrIp: 0.0.0.0/0
+          FromPort: 
+            Fn::Select: [ 0, !Ref SecurityGroupPorts ]
+          ToPort: !Select [ 0, !Ref SecurityGroupPorts ]
+          IpProtocol: tcp
+
+  # Note: Please replace the value of VpcId property
+  # with the ID of your default VPC
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: 'Database instances security group'
+      SecurityGroupIngress:
+        - 
+          CidrIp: 0.0.0.0/0
+          FromPort: !Select [ 1, !Ref SecurityGroupPorts ]
+          ToPort: !Select [ 1, !Ref SecurityGroupPorts ]
+          IpProtocol: tcp
+
+  # Note: Please replace the value of SubnetIds property 
+  # with the IDs of the subnets in your default VPC!
+  DbSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: Subnets to launch db instances into
+      SubnetIds: !Ref DbSubnets
+
+  # Note: There are slight changes from the lecture. Please keep them for a smooth learning experience.
+  DatabaseInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete # An advanced CloudFormation future to disable snapshots on deletions, which is covered in the Intermediate to Advanced course.
+    Properties:
+      BackupRetentionPeriod: 0 # It was added for faster DB instance creation as it disables automatic backups.
+      DBInstanceClass: !Ref DbClass 
+      Engine: mysql # It was updated because MariaDB's default version used in the lecture became not compatible with db.t2.micro.
+      MultiAZ: !Ref MultiAZ
+      PubliclyAccessible: true
+      AllocatedStorage: !Ref AllocatedStorage 
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VPCSecurityGroups: 
+        - !Ref DbSecurityGroup
+      

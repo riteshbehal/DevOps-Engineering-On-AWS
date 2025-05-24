@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Section 2 activity solution template
+Resources:
+  ActivityVpc:
+    Type: AWS::EC2::VPC
+    Description: Section 2 activity VPC definition
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      Tags:
+        -
+          Key: Name
+          Value: Section2ActivityVPC
+  ActivitySubnet:
+    Type: AWS::EC2::Subnet 
+    Properties:
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref ActivityVpc
+  ActivityRouteTable:
+    Type: AWS::EC2::RouteTable 
+    Properties:
+      VpcId: !Ref ActivityVpc
+  ActivityInternetGateway:
+    Type: AWS::EC2::InternetGateway
+  ActivityGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref ActivityVpc
+      InternetGatewayId: !Ref ActivityInternetGateway
+  InternetRoute:
+    Type: AWS::EC2::Route 
+    DependsOn:
+      - ActivityGatewayAttachment
+    Properties:
+      RouteTableId: !Ref ActivityRouteTable
+      GatewayId: !Ref ActivityInternetGateway
+      DestinationCidrBlock: 0.0.0.0/0
+  ActivitySubnetRouteTableAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref ActivityRouteTable
+      SubnetId: !Ref ActivitySubnet
+  ActivityInstance:
+    Type: AWS::EC2::Instance 
+    DependsOn:
+      - InternetRoute
+      - ActivitySubnetRouteTableAssoc
+    Properties:
+      InstanceType: t2.micro
+      SubnetId: !Ref ActivitySubnet 
+      ImageId: ami-0fad7378adf284ce0
+      SecurityGroupIds:
+        - !Ref ActivitySecurityGroup
+  ActivitySecurityGroup:
+    Type: AWS::EC2::SecurityGroup 
+    Properties:
+      GroupDescription: Activity security group 
+      VpcId: !Ref ActivityVpc
+      SecurityGroupIngress:
+        -
+          CidrIp: 0.0.0.0/0 
+          IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+

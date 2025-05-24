@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: My first template in AWS CloudFormation Step by Step
+Resources:
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-03d8b47244d950bbb
+      InstanceType: t2.micro
+      SubnetId: subnet-0619479663b4084af
+      Tags:
+        - Key: Name
+          Value: web-server
+        - Key: Project
+          Value: AWS CloudFormation Step by Step
