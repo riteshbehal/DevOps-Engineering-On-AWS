@@ -3,48 +3,46 @@ Description: Sample database stack for the Metadata and Mappings section
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
-      - 
-        Label:
+      - Label:
           default: Database Instance Settings
         Parameters:
           - MultiAZ
           - AllocatedStorage
           - MasterUsername
           - MasterUserPassword
-      - 
-        Label:
-          default: Network Settings 
+      - Label:
+          default: Network Settings
         Parameters:
           - VpcId
-          - DbSubnets 
+          - DbSubnets
           - SecurityGroupPorts
     ParameterLabels:
       AllocatedStorage:
-        default: Allocated Storage Size 
+        default: Allocated Storage Size
 
 Parameters:
   MasterUsername:
-    Type: String 
-    Description: Master username for the db instance 
+    Type: String
+    Description: Master username for the db instance
     MaxLength: 10
     Default: dbadmin
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
-    NoEcho: true 
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    NoEcho: true
   MasterUserPassword:
-    Type: String 
-    Description: Master user password for the db instance 
+    Type: String
+    Description: Master user password for the db instance
     MinLength: 8
-    NoEcho: true 
+    NoEcho: true
   MultiAZ:
     Type: String
     Description: Enable Multi-AZ?
     AllowedValues:
-      - true 
+      - true
       - false
     ConstraintDescription: MultiAZ parameter should be either true or false.
-    Default: false 
+    Default: false
   AllocatedStorage:
-    Type: Number 
+    Type: Number
     Description: Database storage size in GB
     MinValue: 8
     MaxValue: 20
@@ -52,52 +50,50 @@ Parameters:
     Default: 8
   SecurityGroupPorts:
     Type: List<Number>
-    Description: 'Port numbers as a list: <web-server-port>,<database-port>'
-    Default: '80,3306'
+    Description: "Port numbers as a list: <web-server-port>,<database-port>"
+    Default: "80,3306"
   DbSubnets:
     Type: List<AWS::EC2::Subnet::Id>
-    Description: 'Db subnet ids as a list: <subnet1>,<subnet2>,...'
+    Description: "Db subnet ids as a list: <subnet1>,<subnet2>,..."
   VpcId:
-    Type: AWS::EC2::VPC::Id 
+    Type: AWS::EC2::VPC::Id
     Description: A valid VPC id in your AWS account
   EnvironmentName:
-    Type: String 
-    AllowedValues: 
-      - Production 
-      - Test 
-    Default: Test 
+    Type: String
+    AllowedValues:
+      - Production
+      - Test
+    Default: Test
 
 # The db.t2 class was deprecated! Please use these values for a smooth learning experience.
 Mappings:
   EnvironmentOptions:
-    Production: 
-      DbClass: db.t4g.small 
+    Production:
+      DbClass: db.t4g.small
     Test:
-      DbClass: db.t3.micro 
+      DbClass: db.t3.micro
 
 Resources:
   Bastion:
-    Type: AWS::EC2::Instance 
+    Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-04bd4a6a67aa8e86e
-      InstanceType: t3.micro 
-      SubnetId: !Select [ 0, !Ref DbSubnets ]
+      ImageId: ami-03d8b47244d950bbb
+      InstanceType: t3.micro
+      SubnetId: !Select [0, !Ref DbSubnets]
       Tags:
-        -
-          Key: Name 
-          Value: !Sub '${AWS::StackName}-Bastion'
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-Bastion"
 
   WebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: !Ref VpcId 
-      GroupDescription: 'Web server instances security group'
+      VpcId: !Ref VpcId
+      GroupDescription: "Web server instances security group"
       SecurityGroupIngress:
-        - 
-          CidrIp: 0.0.0.0/0
-          FromPort: 
-            Fn::Select: [ 0, !Ref SecurityGroupPorts ]
-          ToPort: !Select [ 0, !Ref SecurityGroupPorts ]
+        - CidrIp: 0.0.0.0/0
+          FromPort:
+            Fn::Select: [0, !Ref SecurityGroupPorts]
+          ToPort: !Select [0, !Ref SecurityGroupPorts]
           IpProtocol: tcp
 
   # Note: Please replace the value of VpcId property
@@ -106,18 +102,17 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       VpcId: !Ref VpcId
-      GroupDescription: 'Database instances security group'
+      GroupDescription: "Database instances security group"
       SecurityGroupIngress:
-        - 
-          CidrIp: 0.0.0.0/0
-          FromPort: !Select [ 1, !Ref SecurityGroupPorts ]
-          ToPort: !Select [ 1, !Ref SecurityGroupPorts ]
+        - CidrIp: 0.0.0.0/0
+          FromPort: !Select [1, !Ref SecurityGroupPorts]
+          ToPort: !Select [1, !Ref SecurityGroupPorts]
           IpProtocol: tcp
 
-  # Note: Please replace the value of SubnetIds property 
+  # Note: Please replace the value of SubnetIds property
   # with the subnet ids of the subnets in your default VPC!
   DbSubnetGroup:
-    Type: 'AWS::RDS::DBSubnetGroup'
+    Type: "AWS::RDS::DBSubnetGroup"
     Properties:
       DBSubnetGroupDescription: Subnets to launch db instances into
       SubnetIds: !Ref DbSubnets
@@ -126,14 +121,14 @@ Resources:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Delete
     Properties:
-      DBInstanceClass: !FindInMap [ EnvironmentOptions, !Ref EnvironmentName, DbClass ]
+      DBInstanceClass:
+        !FindInMap [EnvironmentOptions, !Ref EnvironmentName, DbClass]
       Engine: mysql
       MultiAZ: !Ref MultiAZ
       PubliclyAccessible: true
-      AllocatedStorage: !Ref AllocatedStorage 
+      AllocatedStorage: !Ref AllocatedStorage
       MasterUsername: !Ref MasterUsername
       MasterUserPassword: !Ref MasterUserPassword
       DBSubnetGroupName: !Ref DbSubnetGroup
-      VPCSecurityGroups: 
+      VPCSecurityGroups:
         - !Ref DbSecurityGroup
-      
