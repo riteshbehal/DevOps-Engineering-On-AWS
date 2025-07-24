@@ -1,0 +1,74 @@
+1. Prerequisites
+
+Ubuntu EC2 instance (Puppet Master/Controller)
+AWS credentials configured (aws configure)
+IAM Role or User with EC2 permissions
+Security Group and Subnet IDs ready
+Existing Key Pair (mykey1) in us-east-1 region
+
+2. Install Puppet
+curl -O https://apt.puppet.com/puppet7-release-focal.deb
+sudo dpkg -i puppet7-release-focal.deb
+sudo apt update
+sudo apt install puppet -y
+
+
+---Confirm:
+which puppet
+puppet --version
+
+
+3. Install AWS CLI
+sudo apt install unzip -y
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+
+---Confirm:
+which aws
+aws --version
+
+4. Configure AWS Credentials
+aws configure
+
+***********
+AWS Access Key ID
+AWS Secret Access Key
+Region: us-east-1
+Output format: json
+
+5. Create the Puppet Manifest
+sudo nano /root/launch_ec2.pp
+##########################################
+
+exec { 'launch_ec2_instance':
+  command => '/usr/local/bin/aws ec2 run-instances \
+    --image-id ami-0c2b8ca1dad447f8a \
+    --count 1 \
+    --instance-type t2.micro \
+    --key-name mykey1 \
+    --subnet-id subnet-0ed36d7d9aeb640a4 \
+    --security-group-ids sg-077bb35267f65c5cc \
+    --region us-east-1 \
+    --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=puppet-demo}]"',
+  path    => ['/usr/local/bin', '/usr/bin', '/bin'],
+  unless  => '/usr/local/bin/aws ec2 describe-instances --filters Name=tag:Name,Values=puppet-demo --region us-east-1 | grep "InstanceId"',
+  logoutput => true,
+}
+
+###############################################
+
+6. Apply the Manifest
+
+sudo /opt/puppetlabs/bin/puppet apply /root/launch_ec2.pp
+
+
+=================================================================
+
+unless ensures the instance is not launched again if it already exists.
+using only Puppet and AWS CLI
+Ensure subnet-id and security-group-id belong to the same VPC.
+Replace:
+	ami-0c2b8ca1dad447f8a with a valid Amazon Linux 2 AMI in your region.
+	mykey1 with your actual Key Pair name.
