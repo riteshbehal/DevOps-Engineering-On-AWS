@@ -1,0 +1,102 @@
+https://prometheus.io/
+https://prometheus.io/docs/introduction/overview/
+
+Launch Linux EC2 instance
+
+Create Prometheus user
+add user to the wheel group
+cd /home/prometheus
+
+sudo wget https://github.com/prometheus/prometheus/releases/download/v2.51.1/prometheus-2.51.1.linux-amd64.tar.gz
+
+sudo tar -xvzf prometheus-2.51.1.linux-amd64.tar.gz
+
+Open port 9090 in SG
+
+Command to start Prometheus:
+----------------------------
+./prometheus --config.file=prometheus.yml
+
+[Prometheus runs on port 9090], telnet localhost 9090
+
+Create prometheus.service
+sudo vi /etc/systemd/system/prometheus.service
+
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=root
+Type=simple-
+Restart=on-failure
+
+ExecStart=/home/prometheus/prometheus-2.51.1.linux-amd64/prometheus \
+    --config.file /home/prometheus/prometheus-2.51.1.linux-amd64/prometheus.yml \
+
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl daemon-reload
+sudo systemctl start prometheus
+sudo systemctl status prometheus
+
+# Command to validate Prometheus config file:
+./promtool check config prometheus.yml
+
+
+
+
+
+
+
+
+# Prometheus Installation on Amazon Linux EC2
+# Security Group: Open TCP port 9090 from My IP
+
+sudo -i
+
+useradd prometheus
+usermod -aG wheel prometheus
+
+cd /home/prometheus
+
+wget https://github.com/prometheus/prometheus/releases/download/v2.51.1/prometheus-2.51.1.linux-amd64.tar.gz
+
+tar -xvzf prometheus-2.51.1.linux-amd64.tar.gz
+
+chown -R prometheus:prometheus /home/prometheus/prometheus-2.51.1.linux-amd64
+
+cd /home/prometheus/prometheus-2.51.1.linux-amd64
+
+./promtool check config prometheus.yml
+
+sudo tee /etc/systemd/system/prometheus.service > /dev/null <<'EOF'
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+Type=simple
+Restart=on-failure
+ExecStart=/home/prometheus/prometheus-2.51.1.linux-amd64/prometheus \
+    --config.file=/home/prometheus/prometheus-2.51.1.linux-amd64/prometheus.yml
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable prometheus
+sudo systemctl start prometheus
+sudo systemctl status prometheus
+
+sudo ss -lntp | grep 9090
+curl http://localhost:9090
+
+# Open in browser:
+# http://<EC2-PUBLIC-IP>:9090
